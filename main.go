@@ -1,24 +1,30 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"fmt"
+	"github.com/muchiri08/crud/api"
+	"github.com/muchiri08/crud/storage"
 )
 
-type User struct {
-	Name string `json:"name,omitempty"`
-	Age  int    `json:"age,omitempty"`
-}
-
 func main() {
-	user := User{}
-
-	// Marshal the user struct to JSON.
-	json, err := json.Marshal(user)
+	migrate := flag.Bool("migrate", false, "initialise database tables")
+	flag.Parse()
+	store, err := storage.NewPostgresStore()
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
+	}
+	address := api.Address{
+		Host: "localhost",
+		Port: ":8080",
 	}
 
-	// Print the JSON output.
-	fmt.Println(string(json))
+	server := api.NewApiServer(address, store)
+
+	if *migrate {
+		server.Store.RunMigrationScript()
+	}
+
+	server.Run()
 }

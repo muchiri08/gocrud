@@ -2,7 +2,9 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
 	_ "github.com/lib/pq"
+	"os"
 )
 
 type PostgresStore struct {
@@ -20,4 +22,18 @@ func NewPostgresStore() (*PostgresStore, error) {
 	}
 
 	return &PostgresStore{db: db}, nil
+}
+
+func (s *PostgresStore) RunMigrationScript() error {
+
+	script, err := os.ReadFile("storage/migration.sql")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(string(script))
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	return nil
 }
