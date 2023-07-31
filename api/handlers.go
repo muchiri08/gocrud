@@ -81,3 +81,45 @@ func (s *ApiServer) HandleUpdateUser(w http.ResponseWriter, r *http.Request) err
 
 	return nil
 }
+
+func (s *ApiServer) CreateProduct(w http.ResponseWriter, r *http.Request) error {
+	product := new(types.Product)
+	if err := json.NewDecoder(r.Body).Decode(product); err != nil {
+		return err
+	}
+
+	return s.Store.CreateProduct(product)
+
+}
+
+func (s *ApiServer) HandleGetAllProducts(w http.ResponseWriter, r *http.Request) error {
+	products, err := s.Store.GetAllProducts()
+	if err != nil {
+		return err
+	}
+
+	writeJSON(w, http.StatusOK, products)
+
+	return nil
+}
+
+func (s *ApiServer) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) error {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		return err
+	}
+
+	row, err := s.Store.DeleteProduct(id)
+	if err != nil {
+		return err
+	}
+	if row > 0 {
+		msg := fmt.Sprintf("product with id %d deleted successfully", id)
+		writeJSON(w, http.StatusOK, msg)
+	} else {
+		writeJSON(w, http.StatusNotFound, "invalid product")
+	}
+
+	return nil
+}

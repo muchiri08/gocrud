@@ -9,7 +9,7 @@ import (
 type ProductsStore interface {
 	CreateProduct() error
 	GetAllProducts() ([]*types.Product, error)
-	DeleteProduct(id int) error
+	DeleteProduct(id int) (int64, error)
 	GetProductById(id int) (*types.Product, error)
 	UpdateProduct(product *types.Product) error
 }
@@ -23,12 +23,14 @@ func (s *PostgresStore) CreateProduct(product *types.Product) error {
 	return nil
 }
 
-func (s *PostgresStore) DeleteProduct(id int) error {
-	_, err := s.db.Exec("DELETE FROM products WHERE id  = $1", id)
+func (s *PostgresStore) DeleteProduct(id int) (int64, error) {
+	res, err := s.db.Exec("DELETE FROM products WHERE id  = $1", id)
+	row, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	return row, nil
 }
 
 func (s *PostgresStore) UpdateProduct(product *types.Product) error {

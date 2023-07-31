@@ -51,6 +51,11 @@ func (s *ApiServer) Run() {
 	mux.HandleFunc("/delete/{id}", changeToHttpHandlerFunc(s.HandleDeleteUsers)).Methods("DELETE")
 	mux.HandleFunc("/update", changeToHttpHandlerFunc(s.HandleUpdateUser)).Methods("PUT")
 
+	products := mux.PathPrefix("/products").Subrouter()
+	products.HandleFunc("/add", changeToHttpHandlerFunc(s.CreateProduct)).Methods("POST")
+	products.HandleFunc("", changeToHttpHandlerFunc(s.HandleGetAllProducts)).Methods("GET")
+	products.HandleFunc("/delete/{id}", changeToHttpHandlerFunc(s.HandleDeleteProduct)).Methods("DELETE")
+
 	fmt.Printf("listening to %s...\n", host)
 	panic(http.ListenAndServe(host, mux))
 
