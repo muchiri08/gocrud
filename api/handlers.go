@@ -56,3 +56,28 @@ func (s *ApiServer) HandleDeleteUsers(w http.ResponseWriter, r *http.Request) er
 
 	return nil
 }
+
+func (s *ApiServer) HandleUpdateUser(w http.ResponseWriter, r *http.Request) error {
+	user := new(types.User)
+	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+		return err
+	}
+
+	user, err := types.ValidateUser(user)
+	if err != nil {
+		return err
+	}
+
+	row, err := s.Store.UpdateUser(user)
+	if err != nil {
+		return err
+	}
+	if row > 0 {
+		msg := fmt.Sprintf("user with id %d updated successfully", user.Id)
+		writeJSON(w, http.StatusOK, msg)
+	} else {
+		writeJSON(w, http.StatusBadRequest, "invalid user")
+	}
+
+	return nil
+}

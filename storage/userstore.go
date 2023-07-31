@@ -10,7 +10,7 @@ type UserStore interface {
 	CreateUser() error
 	GetAllUsers() ([]*types.User, error)
 	DeleteUser(id int) (error, int64)
-	UpdateUser(user *types.User) error
+	UpdateUser(user *types.User) (int64, error)
 }
 
 func (s *PostgresStore) CreateUser(user *types.User) error {
@@ -25,21 +25,23 @@ func (s *PostgresStore) CreateUser(user *types.User) error {
 func (s *PostgresStore) DeleteUser(id int) (error, int64) {
 	query := `DELETE FROM users WHERE id = $1`
 	res, err := s.db.Exec(query, id)
-	rows, err := res.RowsAffected()
+	row, err := res.RowsAffected()
 	if err != nil {
 		return err, 0
 	}
 
-	return nil, rows
+	return nil, row
 }
 
-func (s *PostgresStore) UpdateUser(user *types.User) error {
-	query := `UPDATE users SET name = $1, email = $2, password = $3`
-	_, err := s.db.Exec(query, user.Name, user.Email, user.Password)
+func (s *PostgresStore) UpdateUser(user *types.User) (int64, error) {
+	query := `UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4`
+	res, err := s.db.Exec(query, user.Name, user.Email, user.Password, user.Id)
+	row, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	return row, nil
 }
 
 func (s *PostgresStore) GetAllUsers() ([]*types.User, error) {
