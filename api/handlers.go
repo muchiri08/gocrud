@@ -23,3 +23,11 @@ func (s *ApiServer) HandleCreateUsers(w http.ResponseWriter, r *http.Request) er
 
 	return nil
 }
+
+func (s *ApiServer) HandleGetUsers(w http.ResponseWriter, r *http.Request) error {
+	users, err := s.Store.GetAllUsers()
+	if err != nil {
+		return err
+	}
+	return writeJSON(w, http.StatusOK, users)
+}

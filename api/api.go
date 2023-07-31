@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/muchiri08/crud/storage"
@@ -34,11 +35,19 @@ func changeToHttpHandlerFunc(f apiFunc) http.HandlerFunc {
 	}
 }
 
+func writeJSON(w http.ResponseWriter, status int, v any) error {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	return json.NewEncoder(w).Encode(v)
+}
+
 func (s *ApiServer) Run() {
 	mux := mux.NewRouter()
 	host := fmt.Sprintf("%s%s", s.Address.Host, s.Address.Port)
 
 	mux.HandleFunc("/add-user", changeToHttpHandlerFunc(s.HandleCreateUsers)).Methods("POST")
+	mux.HandleFunc("/users", changeToHttpHandlerFunc(s.HandleGetUsers)).Methods("GET")
 
 	fmt.Printf("listening to %s...", host)
 	panic(http.ListenAndServe(host, mux))
