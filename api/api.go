@@ -48,6 +48,7 @@ func (s *ApiServer) Run() {
 
 	mux.HandleFunc("/add-user", changeToHttpHandlerFunc(s.HandleCreateUsers)).Methods("POST")
 	mux.HandleFunc("/users", changeToHttpHandlerFunc(s.HandleGetUsers)).Methods("GET")
+	mux.HandleFunc("/delete/{id}", changeToHttpHandlerFunc(s.HandleDeleteUsers)).Methods("DELETE")
 
 	fmt.Printf("listening to %s...", host)
 	panic(http.ListenAndServe(host, mux))

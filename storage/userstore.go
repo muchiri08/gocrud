@@ -9,7 +9,7 @@ import (
 type UserStore interface {
 	CreateUser() error
 	GetAllUsers() ([]*types.User, error)
-	DeleteUser(id int) error
+	DeleteUser(id int) (error, int64)
 	UpdateUser(user *types.User) error
 }
 
@@ -22,13 +22,15 @@ func (s *PostgresStore) CreateUser(user *types.User) error {
 	return nil
 }
 
-func (s *PostgresStore) DeleteUser(id int) error {
+func (s *PostgresStore) DeleteUser(id int) (error, int64) {
 	query := `DELETE FROM users WHERE id = $1`
-	_, err := s.db.Exec(query, id)
+	res, err := s.db.Exec(query, id)
+	rows, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return err, 0
 	}
-	return nil
+
+	return nil, rows
 }
 
 func (s *PostgresStore) UpdateUser(user *types.User) error {
