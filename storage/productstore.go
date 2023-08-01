@@ -12,7 +12,7 @@ type ProductsStore interface {
 	GetAllProducts() ([]*types.Product, error)
 	DeleteProduct(id int) (int64, error)
 	GetProductById(id int) (*types.Product, error)
-	UpdateProduct(product *types.Product) error
+	UpdateProduct(product *types.Product) (int64, error)
 }
 
 func (s *PostgresStore) CreateProduct(product *types.Product) error {
@@ -34,13 +34,15 @@ func (s *PostgresStore) DeleteProduct(id int) (int64, error) {
 	return row, nil
 }
 
-func (s *PostgresStore) UpdateProduct(product *types.Product) error {
+func (s *PostgresStore) UpdateProduct(product *types.Product) (int64, error) {
 	query := "UPDATE products SET name = $1, price = $2 WHERE id = $3"
-	_, err := s.db.Exec(query, product.ProductName, product.Price, product.Id)
+	res, err := s.db.Exec(query, product.ProductName, product.Price, product.Id)
+	row, err := res.RowsAffected()
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+
+	return row, nil
 }
 
 func (s *PostgresStore) GetProductById(id int) (*types.Product, error) {

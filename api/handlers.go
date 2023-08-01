@@ -139,3 +139,24 @@ func (s *ApiServer) HandleGetProductById(w http.ResponseWriter, r *http.Request)
 
 	return nil
 }
+
+func (s *ApiServer) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) error {
+	product := new(types.Product)
+	if err := json.NewDecoder(r.Body).Decode(product); err != nil {
+		return err
+	}
+
+	row, err := s.Store.UpdateProduct(product)
+	if err != nil {
+		return err
+	}
+
+	if row > 0 {
+		msg := fmt.Sprintf("product with id %d updated successfully", product.Id)
+		writeJSON(w, http.StatusOK, msg)
+	} else {
+		writeJSON(w, http.StatusBadRequest, "invalid product id")
+	}
+
+	return nil
+}
