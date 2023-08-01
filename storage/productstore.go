@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/lib/pq"
 	"github.com/muchiri08/crud/types"
 )
@@ -45,8 +46,11 @@ func (s *PostgresStore) UpdateProduct(product *types.Product) error {
 func (s *PostgresStore) GetProductById(id int) (*types.Product, error) {
 	var product = new(types.Product)
 	row := s.db.QueryRow("SELECT * FROM products WHERE id = $1", id)
-	err := row.Scan(&product.Id, product.ProductName, product.Price)
+	err := row.Scan(&product.Id, &product.ProductName, &product.Price)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("invalid product id")
+		}
 		return nil, err
 	}
 	return product, nil

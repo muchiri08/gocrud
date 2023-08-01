@@ -123,3 +123,19 @@ func (s *ApiServer) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) 
 
 	return nil
 }
+
+func (s *ApiServer) HandleGetProductById(w http.ResponseWriter, r *http.Request) error {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		return err
+	}
+	product, err := s.Store.GetProductById(id)
+	if err != nil {
+		return err
+	}
+
+	writeJSON(w, http.StatusOK, product)
+
+	return nil
+}

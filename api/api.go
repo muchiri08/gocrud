@@ -55,6 +55,7 @@ func (s *ApiServer) Run() {
 	products.HandleFunc("/add", changeToHttpHandlerFunc(s.CreateProduct)).Methods("POST")
 	products.HandleFunc("", changeToHttpHandlerFunc(s.HandleGetAllProducts)).Methods("GET")
 	products.HandleFunc("/delete/{id}", changeToHttpHandlerFunc(s.HandleDeleteProduct)).Methods("DELETE")
+	products.HandleFunc("/{id}", changeToHttpHandlerFunc(s.HandleGetProductById)).Methods("GET")
 
 	fmt.Printf("listening to %s...\n", host)
 	panic(http.ListenAndServe(host, mux))
