@@ -7,19 +7,21 @@ import (
 )
 
 type UserStore interface {
-	CreateUser() error
+	CreateUser() (*types.User, error)
 	GetAllUsers() ([]*types.User, error)
 	DeleteUser(id int) (error, int64)
 	UpdateUser(user *types.User) (int64, error)
 }
 
-func (s *PostgresStore) CreateUser(user *types.User) error {
-	query := `INSERT INTO users(name, email, password) VALUES ($1, $2, $3)`
-	_, err := s.db.Exec(query, user.Name, user.Email, user.Password)
+func (s *PostgresStore) CreateUser(user *types.User) (*types.User, error) {
+	query := `INSERT INTO users(name, email, password) VALUES ($1, $2, $3) RETURNING id`
+	row := s.db.QueryRow(query, user.Name, user.Email, user.Password)
+
+	err := row.Scan(&user.Id)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return user, nil
 }
 
 func (s *PostgresStore) DeleteUser(id int) (error, int64) {

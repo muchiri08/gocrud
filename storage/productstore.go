@@ -15,13 +15,15 @@ type ProductsStore interface {
 	UpdateProduct(product *types.Product) (int64, error)
 }
 
-func (s *PostgresStore) CreateProduct(product *types.Product) error {
-	query := `INSERT INTO products(name, price) VALUES ($1, $2)`
-	_, err := s.db.Exec(query, product.ProductName, product.Price)
-	if err != nil {
-		return err
+func (s *PostgresStore) CreateProduct(product *types.Product) (*types.Product, error) {
+	query := `INSERT INTO products(name, price) VALUES ($1, $2) RETURNING id`
+	row := s.db.QueryRow(query, product.ProductName, product.Price)
+
+	if err := row.Scan(&product.Id); err != nil {
+		return nil, err
 	}
-	return nil
+
+	return product, nil
 }
 
 func (s *PostgresStore) DeleteProduct(id int) (int64, error) {

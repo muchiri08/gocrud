@@ -20,9 +20,11 @@ func (s *ApiServer) HandleCreateUsers(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 	user = validatedUser
-	if err := s.Store.CreateUser(user); err != nil {
+	user, err = s.Store.CreateUser(user)
+	if err != nil {
 		return err
 	}
+	writeJSON(w, http.StatusCreated, user)
 
 	return nil
 }
@@ -88,8 +90,14 @@ func (s *ApiServer) CreateProduct(w http.ResponseWriter, r *http.Request) error 
 		return err
 	}
 
-	return s.Store.CreateProduct(product)
+	product, err := s.Store.CreateProduct(product)
+	if err != nil {
+		return err
+	}
 
+	writeJSON(w, http.StatusCreated, product)
+
+	return nil
 }
 
 func (s *ApiServer) HandleGetAllProducts(w http.ResponseWriter, r *http.Request) error {
