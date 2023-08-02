@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/lib/pq"
 	"github.com/muchiri08/crud/types"
 )
@@ -11,6 +12,7 @@ type UserStore interface {
 	GetAllUsers() ([]*types.User, error)
 	DeleteUser(id int) (error, int64)
 	UpdateUser(user *types.User) (int64, error)
+	GetUserByEmail(email string) (*types.User, error)
 }
 
 func (s *PostgresStore) CreateUser(user *types.User) (*types.User, error) {
@@ -62,6 +64,21 @@ func (s *PostgresStore) GetAllUsers() ([]*types.User, error) {
 	}
 
 	return users, nil
+}
+
+func (s *PostgresStore) GetUserByEmail(email string) (*types.User, error) {
+	var user = new(types.User)
+
+	row := s.db.QueryRow("SELECT * FROM users WHERE email = $1", email)
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("invalid credentials")
+		}
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func mapRowToUser(rows *sql.Rows) (*types.User, error) {

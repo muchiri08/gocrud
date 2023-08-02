@@ -9,6 +9,11 @@ type User struct {
 	Password string `json:"password,omitempty"`
 }
 
+type UserRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func NewUser(name, email, password string) *User {
 	return &User{
 		Name:     name,

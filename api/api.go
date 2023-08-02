@@ -46,6 +46,9 @@ func (s *ApiServer) Run() {
 	mux := mux.NewRouter()
 	host := fmt.Sprintf("%s%s", s.Address.Host, s.Address.Port)
 
+	mux.HandleFunc("/", changeToHttpHandlerFunc(s.HandleLogin)).Methods("POST")
+	mux.HandleFunc("/login", changeToHttpHandlerFunc(s.HandleLogin)).Methods("POST")
+
 	mux.HandleFunc("/add-user", changeToHttpHandlerFunc(s.HandleCreateUsers)).Methods("POST")
 	mux.HandleFunc("/users", changeToHttpHandlerFunc(s.HandleGetUsers)).Methods("GET")
 	mux.HandleFunc("/delete/{id}", changeToHttpHandlerFunc(s.HandleDeleteUsers)).Methods("DELETE")

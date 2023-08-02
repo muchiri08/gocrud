@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/muchiri08/crud/types"
@@ -176,4 +177,35 @@ func (s *ApiServer) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) 
 	}
 
 	return nil
+}
+
+func (s *ApiServer) HandleLogin(w http.ResponseWriter, r *http.Request) error {
+	var userReq = new(types.UserRequest)
+	err := json.NewDecoder(r.Body).Decode(userReq)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.Store.GetUserByEmail(userReq.Email)
+	if err != nil {
+		return writeJSON(w, http.StatusUnauthorized, err.Error())
+	}
+
+	ok, err := comparePassword(user.Password, userReq.Password)
+	if !ok && err == nil {
+		return writeJSON(w, http.StatusUnauthorized, "invalid credentials")
+	}
+
+	return writeJSON(w, http.StatusOK, "successfully authenticated")
+}
+
+func comparePassword(hashedPass, plainPass string) (bool, error) {
+	if err := bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(plainPass)); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return true, nil
 }
