@@ -5,15 +5,24 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/muchiri08/crud/types"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strconv"
 )
+
+const passwordCost = 12
 
 func (s *ApiServer) HandleCreateUsers(w http.ResponseWriter, r *http.Request) error {
 	user := new(types.User)
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		return err
 	}
+	//encrypting the password
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.Password), passwordCost)
+	if err != nil {
+		return err
+	}
+	user.Password = string(passwordHash)
 
 	validatedUser, err := types.ValidateUser(user)
 	if err != nil {
