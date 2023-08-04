@@ -193,9 +193,12 @@ func (s *ApiServer) HandleLogin(w http.ResponseWriter, r *http.Request) error {
 
 	ok, err := comparePassword(user.Password, userReq.Password)
 	if !ok && err == nil {
-		return writeJSON(w, http.StatusUnauthorized, "invalid credentials")
+		return writeJSON(w, http.StatusUnauthorized, map[string]string{"message": "invalid credentials"})
+	} else if !ok && err != nil {
+		return err
 	}
 
+	//todo add jwt generation
 	return writeJSON(w, http.StatusOK, "successfully authenticated")
 }
 
