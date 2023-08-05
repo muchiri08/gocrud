@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 	"github.com/muchiri08/crud/types"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 )
 
 const passwordCost = 12
+
+var secretKey = os.Getenv("SECRET_KEY")
 
 func (s *ApiServer) HandleCreateUsers(w http.ResponseWriter, r *http.Request) error {
 	user := new(types.User)
@@ -198,8 +203,18 @@ func (s *ApiServer) HandleLogin(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	//todo add jwt generation
-	return writeJSON(w, http.StatusOK, "successfully authenticated")
+	//generating k=token
+	token, err := createJWT(user)
+	if err != nil {
+		return err
+	}
+
+	responseJson, _ := json.Marshal(token)
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(responseJson)
+
+	return nil
 }
 
 func comparePassword(hashedPass, plainPass string) (bool, error) {
@@ -211,4 +226,25 @@ func comparePassword(hashedPass, plainPass string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func createJWT(user *types.User) (string, error) {
+
+	usr := map[string]string{
+		"id":       strconv.Itoa(user.Id),
+		"username": user.Name,
+		"email":    user.Email,
+	}
+	claims := jwt.MapClaims{
+		"IssuedAt":    time.Now().Unix(),
+		"ExpiresAt":   15000,
+		"UserDetails": usr,
+	}
+
+	//combining header and body hash to get the first two parts of the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	//final hash generated based on the header and body token above
+	//finalToken, err := token.SignedString(secretKey)
+	return token.SignedString([]byte(secretKey))
 }
