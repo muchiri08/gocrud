@@ -4,6 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"github.com/muchiri08/crud/types"
+	"golang.org/x/crypto/bcrypt"
+	"log"
 	"os"
 )
 
@@ -25,6 +28,7 @@ func NewPostgresStore() (*PostgresStore, error) {
 }
 
 func (s *PostgresStore) RunMigrationScript() error {
+	log.Println("running migration...")
 
 	script, err := os.ReadFile("storage/migration.sql")
 	if err != nil {
@@ -36,4 +40,16 @@ func (s *PostgresStore) RunMigrationScript() error {
 		return err
 	}
 	return nil
+}
+
+func (s *PostgresStore) InitAdmin() {
+	log.Println("initializing admin...")
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte("12345"), 12)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	admin := types.NewUser("admin", "admin@gmail.com", string(passwordHash), "admin")
+	s.CreateUser(admin)
+
 }

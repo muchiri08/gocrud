@@ -16,8 +16,8 @@ type UserStore interface {
 }
 
 func (s *PostgresStore) CreateUser(user *types.User) (*types.User, error) {
-	query := `INSERT INTO users(name, email, password) VALUES ($1, $2, $3) RETURNING id`
-	row := s.db.QueryRow(query, user.Name, user.Email, user.Password)
+	query := `INSERT INTO users(name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id`
+	row := s.db.QueryRow(query, user.Name, user.Email, user.Password, user.Role)
 
 	err := row.Scan(&user.Id)
 	if err != nil {
@@ -38,8 +38,8 @@ func (s *PostgresStore) DeleteUser(id int) (error, int64) {
 }
 
 func (s *PostgresStore) UpdateUser(user *types.User) (int64, error) {
-	query := `UPDATE users SET name = $1, email = $2, password = $3 WHERE id = $4`
-	res, err := s.db.Exec(query, user.Name, user.Email, user.Password, user.Id)
+	query := `UPDATE users SET name = $1, email = $2, password = $3, role = $4 WHERE id = $5`
+	res, err := s.db.Exec(query, user.Name, user.Email, user.Password, user.Role, user.Id)
 	row, err := res.RowsAffected()
 	if err != nil {
 		return 0, err
@@ -70,7 +70,7 @@ func (s *PostgresStore) GetUserByEmail(email string) (*types.User, error) {
 	var user = new(types.User)
 
 	row := s.db.QueryRow("SELECT * FROM users WHERE email = $1", email)
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("invalid credentials")

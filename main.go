@@ -24,6 +24,7 @@ func main() {
 
 	if *migrate {
 		server.Store.RunMigrationScript()
+		server.Store.InitAdmin()
 	}
 
 	server.Run()
