@@ -2,11 +2,14 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/muchiri08/crud/storage"
 	"net/http"
 )
+
+var ErrorForbidden = errors.New("forbidden")
 
 type ApiServer struct {
 	Address Address
@@ -30,6 +33,10 @@ type apiFunc func(w http.ResponseWriter, r *http.Request) error
 func changeToHttpHandlerFunc(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
+			if errors.Is(err, ErrorForbidden) {
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 	}

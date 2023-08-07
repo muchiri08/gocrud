@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang-jwt/jwt/v5/request"
+	"log"
 	"net/http"
 )
 
@@ -29,7 +30,7 @@ func jWTMiddleware(handler http.Handler) http.Handler {
 			w.Write([]byte("Permission Denied!"))
 			return
 		}
-		
+
 		handler.ServeHTTP(w, r)
 	})
 }
@@ -41,4 +42,22 @@ func validateToken(tokenString string) (*jwt.Token, error) {
 		}
 		return []byte(secretKey), nil
 	})
+}
+
+func getUserDetailsFromClaims(r *http.Request) map[string]string {
+	tokenString := r.Header.Get("access-token")
+	token, _ := validateToken(tokenString)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		log.Println("error when retrieving claims")
+		return nil
+	}
+
+	userDetailsMap := make(map[string]string)
+	usr := claims["UserDetails"].(map[string]interface{})
+	for key, value := range usr {
+		userDetailsMap[key] = value.(string)
+	}
+
+	return userDetailsMap
 }

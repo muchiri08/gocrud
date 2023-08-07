@@ -83,7 +83,7 @@ func (s *PostgresStore) GetUserByEmail(email string) (*types.User, error) {
 
 func mapRowToUser(rows *sql.Rows) (*types.User, error) {
 	var user = new(types.User)
-	err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password)
+	err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.Password, &user.Role)
 	if err != nil {
 		return nil, err
 	}

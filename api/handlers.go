@@ -20,6 +20,10 @@ var secretKey = os.Getenv("SECRET_KEY")
 
 func (s *ApiServer) HandleCreateUsers(w http.ResponseWriter, r *http.Request) error {
 	user := new(types.User)
+	claims := getUserDetailsFromClaims(r)
+	if claims["role"] != "admin" {
+		return ErrorForbidden
+	}
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		return err
 	}
@@ -45,6 +49,10 @@ func (s *ApiServer) HandleCreateUsers(w http.ResponseWriter, r *http.Request) er
 }
 
 func (s *ApiServer) HandleGetUsers(w http.ResponseWriter, r *http.Request) error {
+	claims := getUserDetailsFromClaims(r)
+	if claims["role"] != "admin" {
+		return ErrorForbidden
+	}
 	users, err := s.Store.GetAllUsers()
 	if err != nil {
 		return err
@@ -53,6 +61,10 @@ func (s *ApiServer) HandleGetUsers(w http.ResponseWriter, r *http.Request) error
 }
 
 func (s *ApiServer) HandleDeleteUsers(w http.ResponseWriter, r *http.Request) error {
+	claims := getUserDetailsFromClaims(r)
+	if claims["role"] != "admin" {
+		return ErrorForbidden
+	}
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -75,6 +87,10 @@ func (s *ApiServer) HandleDeleteUsers(w http.ResponseWriter, r *http.Request) er
 }
 
 func (s *ApiServer) HandleUpdateUser(w http.ResponseWriter, r *http.Request) error {
+	claims := getUserDetailsFromClaims(r)
+	if claims["role"] != "admin" {
+		return ErrorForbidden
+	}
 	user := new(types.User)
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		return err
@@ -100,6 +116,10 @@ func (s *ApiServer) HandleUpdateUser(w http.ResponseWriter, r *http.Request) err
 }
 
 func (s *ApiServer) CreateProduct(w http.ResponseWriter, r *http.Request) error {
+	claims := getUserDetailsFromClaims(r)
+	if claims["role"] != "admin" {
+		return ErrorForbidden
+	}
 	product := new(types.Product)
 	if err := json.NewDecoder(r.Body).Decode(product); err != nil {
 		return err
@@ -120,6 +140,7 @@ func (s *ApiServer) HandleGetAllProducts(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		return err
 	}
+	//claims := getUserDetailsFromClaims(r)
 
 	writeJSON(w, http.StatusOK, products)
 
@@ -127,6 +148,10 @@ func (s *ApiServer) HandleGetAllProducts(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *ApiServer) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) error {
+	claims := getUserDetailsFromClaims(r)
+	if claims["role"] != "admin" {
+		return ErrorForbidden
+	}
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -164,6 +189,10 @@ func (s *ApiServer) HandleGetProductById(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *ApiServer) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) error {
+	claims := getUserDetailsFromClaims(r)
+	if claims["role"] != "admin" {
+		return ErrorForbidden
+	}
 	product := new(types.Product)
 	if err := json.NewDecoder(r.Body).Decode(product); err != nil {
 		return err
@@ -234,6 +263,7 @@ func createJWT(user *types.User) (string, error) {
 		"id":       strconv.Itoa(user.Id),
 		"username": user.Name,
 		"email":    user.Email,
+		"role":     user.Role,
 	}
 	claims := jwt.MapClaims{
 		"IssuedAt":    time.Now().Unix(),
